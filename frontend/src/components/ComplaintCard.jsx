@@ -26,7 +26,7 @@ function ComplaintCard({ complaint }) {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ borderColor: 'rgba(99,102,241,0.4)', translateY: -2 }}
+      whileHover={{ borderColor: 'rgba(99,102,241,0.4)', translateY: -2 , boxShadow: '0 8px 30px rgba(99,102,241,0.1)'}}
       style={{
         background: 'var(--bg-card)',
         border: '1px solid var(--border)',

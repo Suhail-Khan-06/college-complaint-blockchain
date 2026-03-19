@@ -6,3 +6,7 @@ dist/
 coverage/
 artifacts/
 cache/
+node_modules/
+.env
+dist/
+.DS_Store

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Send, Loader } from 'lucide-react';
+import { Send, Loader, CheckCircle } from 'lucide-react';
 
 const CATEGORIES = ['Hostel', 'Mess', 'Academics', 'Infrastructure', 'Other'];
 
@@ -115,21 +115,51 @@ function ComplaintForm({ contract, onSubmitted }) {
 
         {/* Submit Button */}
         <motion.button
-          whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-          type="submit" disabled={loading || success}
-          style={{
-            background: success ? 'rgba(16,185,129,0.8)' : 'var(--gradient)',
-            border: 'none', borderRadius: '10px',
-            padding: '12px', color: 'white',
-            fontWeight: 700, fontSize: '14px',
-            display: 'flex', alignItems: 'center',
-            justifyContent: 'center', gap: '8px',
-            opacity: loading ? 0.8 : 1,
-          }}>
-          {loading ? <><Loader size={16} className="spin" /> Submitting to Blockchain...</>
-            : success ? '✅ Complaint Submitted!'
-            : <><Send size={16} /> Submit Complaint</>}
-        </motion.button>
+  whileHover={{ scale: success ? 1 : 1.02 }}
+  whileTap={{ scale: 0.98 }}
+  type="submit"
+  disabled={loading || success}
+  style={{
+    background: success
+      ? 'linear-gradient(135deg, #10b981, #059669)'
+      : loading
+      ? 'rgba(99,102,241,0.6)'
+      : 'var(--gradient)',
+    border: 'none',
+    borderRadius: '10px',
+    padding: '13px',
+    color: 'white',
+    fontWeight: 700,
+    fontSize: '14px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    transition: 'all 0.3s ease',
+    boxShadow: success
+      ? '0 0 20px rgba(16,185,129,0.4)'
+      : loading
+      ? 'none'
+      : '0 4px 15px rgba(99,102,241,0.3)',
+  }}>
+  {loading ? (
+    <>
+      <Loader size={16} className="spin" />
+      Submitting to Blockchain...
+    </>
+  ) : success ? (
+    <>
+      <CheckCircle size={16} />
+      Complaint Submitted!
+    </>
+  ) : (
+    <>
+      <Send size={16} />
+      Submit Complaint
+    </>
+  )}
+</motion.button>
+
 
       </form>
     </motion.div>
