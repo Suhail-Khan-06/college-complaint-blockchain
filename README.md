@@ -104,7 +104,3 @@ getMyComplaints() Student View own complaints
 updateComplaintStatus() Admin only Change complaint status
 getStats() Public Get dashboard statistics
 Made by Suhail | Blockchain Development Project
-
-text
-
----
