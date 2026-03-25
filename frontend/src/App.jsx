@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ethers } from 'ethers';
 import Navbar from './components/Navbar';
@@ -24,7 +24,6 @@ function App() {
       const wallet = new ethers.Wallet(privateKey, provider);
       const deployedContract = new ethers.Contract(CONTRACT_ADDRESS, ContractABI, wallet);
       const adminAddress = await deployedContract.admin();
-
       setAccount(wallet.address);
       setContract(deployedContract);
       setIsAdmin(wallet.address.toLowerCase() === adminAddress.toLowerCase());
@@ -61,13 +60,13 @@ function App() {
             <Dashboard
               contract={contract}
               account={account}
+              isAdmin={isAdmin}
               onConnectAdmin={() => connectAs('admin')}
               onConnectStudent={() => connectAs('student')}
-              loading={loading}
             />
           } />
           <Route path="/my-complaints" element={
-            account ? <MyComplaints contract={contract} account={account} /> : <Navigate to="/" />
+            account ? <MyComplaints contract={contract} account={account} isAdmin={isAdmin} /> : <Navigate to="/" />
           } />
           <Route path="/admin" element={
             isAdmin ? <AdminPanel contract={contract} /> : <Navigate to="/" />

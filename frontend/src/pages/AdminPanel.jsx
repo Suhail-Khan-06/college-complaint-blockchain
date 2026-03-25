@@ -5,6 +5,7 @@ import ComplaintCard from '../components/ComplaintCard';
 
 function AdminPanel({ contract }) {
   const [complaints, setComplaints] = useState([]);
+  const [voteCounts, setVoteCounts] = useState({});
   const [filter, setFilter] = useState('All');
   const [loading, setLoading] = useState(false);
   const [updating, setUpdating] = useState(null);
@@ -15,6 +16,13 @@ function AdminPanel({ contract }) {
       setLoading(true);
       const all = await contract.getAllComplaints();
       setComplaints([...all].reverse());
+
+      const counts = {};
+      for (let c of all) {
+        const v = await contract.upvotes(c.id);
+        counts[Number(c.id)] = Number(v);
+      }
+      setVoteCounts(counts);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
   }
@@ -22,9 +30,11 @@ function AdminPanel({ contract }) {
   useEffect(() => { loadComplaints(); }, [contract]);
 
   async function updateStatus(id, status) {
+    const remark = prompt(`Add a remark for this status update:`);
+    if (remark === null) return;
     try {
       setUpdating(id);
-      const tx = await contract.updateComplaintStatus(id, status);
+      const tx = await contract.updateComplaintStatus(id, status, remark || '-');
       await tx.wait();
       await loadComplaints();
     } catch (err) { console.error(err); }
@@ -70,33 +80,52 @@ function AdminPanel({ contract }) {
           ))}
         </div>
 
-        {/* Complaints with update controls */}
+        {/* Complaints */}
         {loading ? (
           <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '3rem' }}>Loading...</div>
+        ) : filtered.length === 0 ? (
+          <div style={{
+            textAlign: 'center', padding: '3rem', background: 'var(--bg-card)',
+            border: '1px solid var(--border)', borderRadius: '16px',
+            color: 'var(--text-muted)', fontSize: '14px'
+          }}>No complaints found</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {filtered.map((c, i) => (
               <div key={i}>
-                <ComplaintCard complaint={c} />
+                <ComplaintCard
+                  complaint={c}
+                  contract={contract}
+                  isAdmin={true}
+                  voteCount={voteCounts[Number(c.id)] || 0}
+                />
                 <div style={{
                   background: 'var(--bg-card)', border: '1px solid var(--border)',
                   borderTop: 'none', borderRadius: '0 0 12px 12px',
-                  padding: '12px 16px', display: 'flex', gap: '8px', alignItems: 'center'
+                  padding: '12px 16px', display: 'flex', gap: '8px',
+                  alignItems: 'center', flexWrap: 'wrap'
                 }}>
-                  <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginRight: '4px' }}>Update:</span>
-                  {[{ label: 'Pending', val: 0, color: '#f59e0b' },
+                  <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginRight: '4px' }}>
+                    Update Status:
+                  </span>
+                  {[
+                    { label: 'Pending', val: 0, color: '#f59e0b' },
                     { label: 'In Progress', val: 1, color: '#3b82f6' },
-                    { label: 'Resolved', val: 2, color: '#10b981' }].map(s => (
+                    { label: 'Resolved', val: 2, color: '#10b981' }
+                  ].map(s => (
                     <motion.button key={s.val} whileHover={{ scale: 1.04 }}
                       onClick={() => updateStatus(Number(c.id), s.val)}
                       disabled={Number(c.status) === s.val || updating === Number(c.id)}
                       style={{
-                        padding: '5px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 600,
+                        padding: '5px 14px', borderRadius: '6px',
+                        fontSize: '12px', fontWeight: 600,
                         border: `1px solid ${s.color}40`,
                         background: Number(c.status) === s.val ? `${s.color}25` : 'transparent',
-                        color: s.color, cursor: Number(c.status) === s.val ? 'default' : 'pointer',
+                        color: s.color,
+                        cursor: Number(c.status) === s.val ? 'default' : 'pointer',
                         opacity: updating === Number(c.id) ? 0.6 : 1,
-                      }}>{updating === Number(c.id) ? '...' : s.label}
+                      }}>
+                      {updating === Number(c.id) ? '...' : s.label}
                     </motion.button>
                   ))}
                 </div>

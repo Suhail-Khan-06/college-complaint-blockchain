@@ -8,6 +8,13 @@ contract ComplaintSystem {
     enum Status   { Pending, InProgress, Resolved }
     enum Category { Hostel, Mess, Academics, Infrastructure, Other }
 
+    struct StatusHistory {
+        Status  status;
+        address changedBy;
+        uint    timestamp;
+        string  remark;
+    }
+
     struct Complaint {
         uint     id;
         address  student;
@@ -21,9 +28,15 @@ contract ComplaintSystem {
 
     Complaint[] public complaints;
     mapping(address => uint[]) private studentComplaints;
+    mapping(uint => StatusHistory[]) public complaintHistory;
+
+    // --- NEW: Upvoting ---
+    mapping(uint => uint) public upvotes;
+    mapping(uint => mapping(address => bool)) public hasVoted;
 
     event ComplaintSubmitted(uint id, address indexed student, string title);
-    event StatusUpdated(uint indexed id, Status newStatus);
+    event StatusUpdated(uint indexed id, Status newStatus, address changedBy, string remark);
+    event Upvoted(uint indexed id, address indexed voter, uint totalVotes);
 
     modifier onlyAdmin() {
         require(msg.sender == admin, "Only admin can do this");
@@ -51,14 +64,60 @@ contract ComplaintSystem {
             status:      Status.Pending,
             timestamp:   block.timestamp
         }));
+
+        complaintHistory[id].push(StatusHistory({
+            status:    Status.Pending,
+            changedBy: msg.sender,
+            timestamp: block.timestamp,
+            remark:    "Complaint submitted"
+        }));
+
         studentComplaints[msg.sender].push(id);
         emit ComplaintSubmitted(id, msg.sender, _title);
     }
 
-    function updateComplaintStatus(uint _id, Status _status) public onlyAdmin {
+    function updateComplaintStatus(
+        uint   _id,
+        Status _status,
+        string memory _remark
+    ) public onlyAdmin {
         require(_id < complaints.length, "Invalid complaint ID");
+        require(complaints[_id].status != _status, "Status is already the same");
+
         complaints[_id].status = _status;
-        emit StatusUpdated(_id, _status);
+
+        complaintHistory[_id].push(StatusHistory({
+            status:    _status,
+            changedBy: msg.sender,
+            timestamp: block.timestamp,
+            remark:    _remark
+        }));
+
+        emit StatusUpdated(_id, _status, msg.sender, _remark);
+    }
+
+    // --- NEW: Upvote function ---
+    function upvoteComplaint(uint _id) public {
+        require(_id < complaints.length, "Invalid complaint ID");
+        require(!hasVoted[_id][msg.sender], "You already upvoted this");
+        require(complaints[_id].status != Status.Resolved, "Cannot vote on resolved complaint");
+
+        hasVoted[_id][msg.sender] = true;
+        upvotes[_id]++;
+
+        emit Upvoted(_id, msg.sender, upvotes[_id]);
+    }
+
+    // --- NEW: Check if current user voted ---
+    function didIVote(uint _id) public view returns (bool) {
+        return hasVoted[_id][msg.sender];
+    }
+
+    function getComplaintHistory(uint _id)
+        public view returns (StatusHistory[] memory)
+    {
+        require(_id < complaints.length, "Invalid complaint ID");
+        return complaintHistory[_id];
     }
 
     function getAllComplaints() public view returns (Complaint[] memory) {

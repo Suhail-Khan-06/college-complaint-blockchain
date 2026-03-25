@@ -37,17 +37,7 @@ function ComplaintForm({ contract, onSubmitted }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-      style={{
-        background: 'var(--bg-card)',
-        border: '1px solid rgba(99,102,241,0.3)',
-        borderRadius: '16px', padding: '1.8rem',
-      }}>
-
-      <h2 style={{ fontSize: '17px', fontWeight: 700, marginBottom: '1.4rem', color: 'var(--text-primary)' }}>
-        Submit New Complaint
-      </h2>
-
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
 
         {/* Title */}

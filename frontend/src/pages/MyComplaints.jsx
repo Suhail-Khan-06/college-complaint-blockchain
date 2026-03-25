@@ -3,8 +3,9 @@ import { motion } from 'framer-motion';
 import { FileText } from 'lucide-react';
 import ComplaintCard from '../components/ComplaintCard';
 
-function MyComplaints({ contract, account }) {
+function MyComplaints({ contract, account, isAdmin }) {
   const [complaints, setComplaints] = useState([]);
+  const [voteCounts, setVoteCounts] = useState({});
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -14,6 +15,13 @@ function MyComplaints({ contract, account }) {
         setLoading(true);
         const mine = await contract.getMyComplaints();
         setComplaints([...mine].reverse());
+
+        const counts = {};
+        for (let c of mine) {
+          const v = await contract.upvotes(c.id);
+          counts[Number(c.id)] = Number(v);
+        }
+        setVoteCounts(counts);
       } catch (err) { console.error(err); }
       finally { setLoading(false); }
     }
@@ -44,7 +52,15 @@ function MyComplaints({ contract, account }) {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {complaints.map((c, i) => <ComplaintCard key={i} complaint={c} />)}
+            {complaints.map((c, i) => (
+              <ComplaintCard
+                key={i}
+                complaint={c}
+                contract={contract}
+                isAdmin={false}
+                voteCount={voteCounts[Number(c.id)] || 0}
+              />
+            ))}
           </div>
         )}
       </motion.div>
