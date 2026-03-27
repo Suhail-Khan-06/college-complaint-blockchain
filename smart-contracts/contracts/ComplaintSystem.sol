@@ -8,13 +8,6 @@ contract ComplaintSystem {
     enum Status   { Pending, InProgress, Resolved }
     enum Category { Hostel, Mess, Academics, Infrastructure, Other }
 
-    struct StatusHistory {
-        Status  status;
-        address changedBy;
-        uint    timestamp;
-        string  remark;
-    }
-
     struct Complaint {
         uint     id;
         address  student;
@@ -25,6 +18,13 @@ contract ComplaintSystem {
         Status   status;
         uint     timestamp;
     }
+
+        struct StatusHistory {
+            Status  status;
+            address changedBy;
+            uint    timestamp;
+            string  remark;
+        }
 
     Complaint[] public complaints;
     mapping(address => uint[]) private studentComplaints;
